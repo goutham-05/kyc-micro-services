@@ -1,0 +1,107 @@
+service: user-service
+
+frameworkVersion: "3.39.0"
+
+configValidationMode: error
+
+plugins:
+  - serverless-offline
+  - serverless-esbuild
+  - serverless-plugin-monorepo
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  environment:
+    KYC_SERVICE_URL: "http://localhost:4005/dev" # KYC service URL for local testing
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+      Resource:
+        - Fn::GetAtt: [UserQueue, Arn]
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource:
+        - Ref: UserTopic
+
+custom:
+  serverless-offline:
+    runtime: nodejs16.x
+    httpPort: 4000
+    lambdaPort: 4002
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude: ["aws-sdk"]
+    target: "node16"
+    platform: "node"
+
+functions:
+  createUser:
+    handler: lib/createUser/handler.handler
+    environment:
+      SQS_QUEUE_URL: { Ref: UserQueue }
+      SNS_TOPIC_ARN: { Ref: UserTopic }
+    events:
+      - http:
+          path: user
+          method: post
+
+  getUser:
+    handler: lib/getUser/handler.handler
+    events:
+      - http:
+          path: user/{id}
+          method: get
+
+  updateUser:
+    handler: lib/updateUser/handler.handler
+    events:
+      - http:
+          path: user/{id}
+          method: put
+
+  deleteUser:
+    handler: lib/deleteUser/handler.handler
+    events:
+      - http:
+          path: user/{id}
+          method: delete
+
+  # Add handleKycProcess function for KYC testing
+  handleKycProcess:
+    handler: lib/userHandlers.handleKycProcess
+    events:
+      - http:
+          path: user/kyc/{userId}
+          method: get
+          request:
+            parameters:
+              paths:
+                userId: true
+
+resources:
+  Resources:
+    UserQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: user-queue
+
+    UserTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: user-topic
+
+package:
+  individually: true
+
+useDotenv: true
+
+outputs:
+  ServiceEndpoint:
+    Description: "URL of the service endpoint"
+    Value:
+      Fn::Sub: "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${sls:stage}/user"

@@ -1,0 +1,115 @@
+service: kyc-service
+
+frameworkVersion: "3.39.0"
+
+configValidationMode: error
+
+plugins:
+  - serverless-offline
+  - serverless-esbuild
+  - serverless-plugin-monorepo
+  - serverless-dynamodb-local
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+  environment:
+    DYNAMODB_TABLE_NAME: ${env:DYNAMODB_TABLE_NAME}
+    SNS_TOPIC_ARN: { "Ref": "KycNotificationTopic" } # Updated to use the created SNS topic ARN
+    IS_OFFLINE: ${opt:isOffline, 'false'}
+    DYNAMODB_ENDPOINT: ${self:custom.dynamoDbEndpoint.${self:custom.isOffline}}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+      Resource:
+        - Fn::GetAtt: [KycTable, Arn]
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource:
+        - Ref: KycNotificationTopic
+
+custom:
+  isOffline: ${opt:isOffline, 'false'}
+  dynamodbTableName: kyc-users
+
+  dynamoDbEndpoint:
+    "true": "http://localhost:8000"
+    "false": ""
+
+  serverless-offline:
+    runtime: nodejs16.x
+    httpPort: 4005
+    lambdaPort: 4004
+
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude: ["aws-sdk"]
+    target: "node16"
+    platform: "node"
+
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+
+functions:
+  initiateKyc:
+    handler: lib/handlers/kycHandlers.initiateKYCHandler
+    environment:
+      SNS_TOPIC_ARN: { "Ref": "KycNotificationTopic" }
+    events:
+      - http:
+          path: kyc/initiate
+          method: post
+
+  checkKycStatus:
+    handler: lib/handlers/kycHandlers.checkKYCStatusHandler
+    events:
+      - http:
+          path: kyc/status/{id}
+          method: get
+          cors: true # Enable CORS
+
+  completeKyc:
+    handler: lib/handlers/kycHandlers.completeKYCHandler
+    environment:
+      SNS_TOPIC_ARN: { "Ref": "KycNotificationTopic" }
+    events:
+      - http:
+          path: kyc/complete
+          method: post
+
+resources:
+  Resources:
+    KycTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.dynamodbTableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    KycNotificationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: kyc-notification-topic
+
+package:
+  individually: true
+
+useDotenv: true

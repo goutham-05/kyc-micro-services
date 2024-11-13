@@ -1,0 +1,30 @@
+{
+  "name": "@goutham-05/kyc-sdk",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts", 
+  "scripts": {
+    "build": "tsc",
+    "dev": "serverless offline",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.141",
+    "@types/node": "^20.14.11",
+    "aws-lambda": "^1.0.7",
+    "aws-sdk": "^2.1659.0",
+    "serverless": "3.38.0",
+    "serverless-esbuild": "^1.52.1",
+    "serverless-offline": "^13.6.0",
+    "serverless-plugin-monorepo": "^0.11.0",
+    "typescript": "^5.5.3",
+    "@goutham-05/kyc-sdk": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3"
+  }
+}

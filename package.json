@@ -1,0 +1,56 @@
+{
+  "name": "@goutham-05/kyc-micro-services",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "license": "MIT",
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "build": "nx run-many --target=build --all",
+    "deploy": "nx run-many --target=deploy --all",
+    "dev": "nx run-many --target=dev --all",
+    "clean": "rimraf node_modules && rimraf services/*/node_modules && rimraf services/*/lib",
+    "test": "nx run-many --target=test --all",
+    "test:coverage": "nx run-many --target=test --all -- --coverage",
+    "nx:run": "nx run",
+    "lint": "nx run-many --target=lint --all",
+    "format": "nx format:write",
+    "format:check": "nx format:check",
+    "dep-graph": "nx dep-graph",
+    "affected:build": "nx affected --target=build",
+    "affected:test": "nx affected --target=test",
+    "affected:lint": "nx affected --target=lint",
+    "affected:deploy": "nx affected --target=deploy",
+    "affected:dev": "nx affected --target=dev",
+    "clear-cache": "nx reset",
+    "report": "nx print-affected --target=build --select=projects",
+    "report:all": "nx affected:print --all",
+    "bootstrap": "yarn install && yarn build",
+    "dev:no-cache": "yarn nx run-many --target=dev --all --skip-nx-cache"
+  },
+  "devDependencies": {
+    "@nrwl/cli": "15.9.3",
+    "@nrwl/node": "19.5.2",
+    "@nrwl/nx-cloud": "^19.0.0",
+    "@nrwl/workspace": "19.5.2",
+    "@types/jest": "^29.5.12",
+    "esbuild": "0.14.49",
+    "jest": "^29.7.0",
+    "nx": "19.5.2",
+    "rimraf": "^3.0.2",
+    "serverless": "^3.38.0",
+    "serverless-esbuild": "^1.52.1",
+    "serverless-offline": "^10.0.0",
+    "serverless-plugin-monorepo": "^0.11.0",
+    "ts-jest": "^29.2.3",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "serverless-dynamodb-local": "^0.2.40",
+    "serverless-offline": "^10.0.0"
+  }
+}

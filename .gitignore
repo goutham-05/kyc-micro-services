@@ -1,0 +1,45 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Directories
+dist/
+lib/
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Serverless Framework
+.serverless/
+.sls-offline/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+
+# Yarn
+.yarn/
+.pnp.*
+
+# Miscellaneous
+*.swp
+.idea/
+.vscode/
+
+# Ignore all nested node_modules except for workspace root
+services/*/node_modules
+
+
+
+.nx/cache
+.nx/workspace-data

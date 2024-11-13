@@ -1,0 +1,10 @@
+{
+  "extends": "../../config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "declaration": true, // Enables automatic generation of .d.ts files
+    "declarationMap": true // Optional: generates source maps for .d.ts files for easier debugging
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

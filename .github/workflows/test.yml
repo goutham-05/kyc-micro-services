@@ -1,0 +1,71 @@
+name: Test Services
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test:
+    name: Test Affected Projects
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all history for all branches and tags
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Set base and head SHAs for pull requests
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE_COMMIT=${{ github.event.pull_request.base.sha }}
+          HEAD_COMMIT=${{ github.event.pull_request.head.sha }}
+          echo "BASE_COMMIT=$BASE_COMMIT" >> $GITHUB_ENV
+          echo "HEAD_COMMIT=$HEAD_COMMIT" >> $GITHUB_ENV
+
+      - name: Set base and head SHAs for push events
+        if: github.event_name == 'push'
+        run: |
+          git fetch origin develop
+          BASE_COMMIT=$(git rev-parse origin/develop~1)
+          HEAD_COMMIT=$(git rev-parse HEAD)
+          echo "BASE_COMMIT=$BASE_COMMIT" >> $GITHUB_ENV
+          echo "HEAD_COMMIT=$HEAD_COMMIT" >> $GITHUB_ENV
+
+      - name: Print changed files
+        run: |
+          CHANGED_FILES=$(git diff --name-only ${{ env.BASE_COMMIT }} ${{ env.HEAD_COMMIT }})
+          echo "Changed files: $CHANGED_FILES"
+        id: changes
+
+      - name: Run Nx test affected
+        env:
+          CI: true
+          NX_BRANCH: ${{ github.ref }}
+          NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+          BASE_COMMIT: ${{ env.BASE_COMMIT }}
+          HEAD_COMMIT: ${{ env.HEAD_COMMIT }}
+        run: |
+          CHANGED_FILES=$(git diff --name-only $BASE_COMMIT $HEAD_COMMIT)
+          echo "Changed files: $CHANGED_FILES"
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No changes detected."
+            exit 0
+          fi
+
+          # Test affected projects
+          npx nx affected --target=test --base=$BASE_COMMIT --head=$HEAD_COMMIT --parallel --verbose -- --coverage
