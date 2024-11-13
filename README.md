@@ -21,6 +21,9 @@ This project contains a monorepo setup for KYC-related microservices using Nx an
     - [Affected Commands](#affected-commands)
   - [Working with the SDK](#working-with-the-sdk)
   - [Nx Cloud](#nx-cloud)
+  - [Summary of Estimated Monthly Costs](#summary-of-estimated-monthly-costs)
+    - [Service Configuration and Estimated Monthly Cost](#service-configuration-and-estimated-monthly-cost)
+    - [Recommendations](#recommendations)
 
 ## Project Structure
 
@@ -211,3 +214,29 @@ Nx Cloud can improve build performance by caching previous runs and distributing
 ```bash
 yarn nx connect-to-nx-cloud
 ```
+
+For more information, visit the [Nx Cloud documentation](https://nx.app/).
+
+## Summary of Estimated Monthly Costs
+
+This SDK is designed to handle up to 5,000 API requests per month. Below is an estimated cost breakdown for the various AWS services that could be used to deploy this SDK, with a focus on cost efficiency and scalability.
+
+### Service Configuration and Estimated Monthly Cost
+
+| Service Configuration      | Estimated Monthly Cost |
+| -------------------------- | ---------------------- |
+| API Gateway + Lambda       | ~$0.33                 |
+| API Gateway + Fargate      | ~$0.11                 |
+| Amazon DynamoDB (optional) | <$0.01                 |
+| Amazon EC2 (t4g.micro)     | ~$7.48                 |
+
+### Recommendations
+
+- **API Gateway + Lambda**: Ideal for low to medium traffic, serverless, and highly scalable, with minimal management required.
+- **API Gateway + Fargate**: Best for cases requiring containerization with a serverless billing model, keeping costs low for intermittent usage.
+- **DynamoDB**: Optional for storing KYC records, adding negligible cost for the estimated usage.
+- **EC2**: Suitable for more customizable, always-on deployments but generally more costly for low traffic volumes.
+
+These estimates provide a cost-effective approach to hosting the SDK, with serverless options being the most economical and scalable. Adjustments may be needed based on usage patterns and additional requirements.
+
+![KYC Result Diagram](./assets/sdk-output.png)
